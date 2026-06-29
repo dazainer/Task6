@@ -87,3 +87,12 @@ the `fastapi-task` service, checks `/health`, and writes logs to
 `logs/update.log`.
 
 HTTPS is intentionally not included yet.
+
+## Docker Deployment
+
+This FastAPI application is containerized using Docker.
+
+### Build the image
+
+```bash
+docker build -t task6-fastapi .
