@@ -6,3 +6,20 @@ Docker Basics Task
 4. Build the Docker image and run the application inside a container.
 5. ⁠Verify the application is accessible through Nginx as before.
 6. ⁠Ensure the application runs correctly inside the container and is accessible through the server IP.
+
+Extension:
+Docker Compose Task
+1. Create a docker-compose.yml file to run:
+    * The FastAPI application.
+    * A MySQL database.
+2. Configure both containers to communicate over the same Docker network.
+3. Connect the FastAPI application to the MySQL database (you can use the existing Employees sample database).
+Note: The application should connect to MySQL using the service name as the hostname, not localhost.
+
+4. Store the MySQL data using a Docker volume so it persists if the containers are recreated.
+5. Use an .env file to store the MySQL password and any application secrets.
+6. Ensure the FastAPI application starts successfully even if the MySQL container takes a little longer to become available.
+7. Update your deployment script to:
+    * Pull the latest code from GitHub.
+    * Rebuild and recreate the containers using Docker Compose.
+    * Verify the application is running successfully after deployment.
