@@ -14,7 +14,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: mysql:8.0
+    image: mysql:8.0-debian
     container_name: task6-mysql
     env_file:
       - .env
