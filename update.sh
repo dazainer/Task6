@@ -2,12 +2,11 @@
 
 # update.sh
 # Usage: ./update.sh
-# Pulls the latest code from GitHub, updates Python dependencies,
-# restarts the FastAPI systemd service, and logs the result.
+# Pulls the latest code from GitHub, rebuilds and recreates Docker Compose containers,
+# verifies the FastAPI and database health endpoints, and logs the result.
 
 set -u
 
-SERVICE_NAME="fastapi-task"
 BRANCH="main"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$PROJECT_DIR/logs"
@@ -43,50 +42,37 @@ cd "$PROJECT_DIR" || fail "Could not enter project directory."
 log "Pulling latest changes from GitHub."
 
 git pull --ff-only origin "$BRANCH" >> "$LOG_FILE" 2>&1
-
-
 checkstatus $? "Git pull failed."
-
 
 log "Git pull completed successfully."
 
-if [ ! -x "$PROJECT_DIR/venv/bin/pip" ]; then
-    fail "Virtual environment pip not found at $PROJECT_DIR/venv/bin/pip."
-fi
+log "Rebuilding and recreating Docker Compose containers."
 
-log "Installing Python dependencies."
+docker compose up -d --build >> "$LOG_FILE" 2>&1
+checkstatus $? "Docker Compose deployment failed."
 
-"$PROJECT_DIR/venv/bin/pip" install --quiet --disable-pip-version-check -r requirements.txt >> "$LOG_FILE" 2>&1
+log "Docker Compose deployment completed."
 
+log "Current Docker Compose status:"
+docker compose ps >> "$LOG_FILE" 2>&1
+checkstatus $? "Could not get Docker Compose status."
 
-checkstatus $? "Dependency installation failed."
+log "Waiting briefly before health checks."
+sleep 5
 
-
-log "Dependencies installed successfully."
-log "Restarting systemd service: $SERVICE_NAME."
-
-sudo systemctl restart "$SERVICE_NAME" >> "$LOG_FILE" 2>&1
-
-
-checkstatus $? "Service restart failed."
-
-
-sleep 2
-
-sudo systemctl is-active --quiet "$SERVICE_NAME"
-
-checkstatus $? "Service is not active after restart."
-
-
-log "Service is active after restart."
-log "Checking local health endpoint."
+log "Checking FastAPI health endpoint."
 
 curl -fsS http://127.0.0.1:8000/health >> "$LOG_FILE" 2>&1
+checkstatus $? "FastAPI health check failed."
 
+log "FastAPI health check passed."
 
-checkstatus $? "Health check failed."
+log "Checking database health endpoint."
 
+curl -fsS http://127.0.0.1:8000/db/health >> "$LOG_FILE" 2>&1
+checkstatus $? "Database health check failed."
 
-log "Health check passed."
+log "Database health check passed."
+
 log "Update completed successfully."
 endlog

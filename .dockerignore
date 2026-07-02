@@ -12,3 +12,5 @@ __pycache__/
 logs/
 *.log
 .DS_Store
+employees_dump.sql
+*.sql
