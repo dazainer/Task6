@@ -1,7 +1,7 @@
 import os
 import time
 
-import mysql.connector
+import pymysql
 from fastapi import FastAPI, HTTPException
 
 
@@ -18,15 +18,15 @@ def get_db_connection(max_attempts: int = 5, delay_seconds: int = 2):
 
     for attempt in range(1, max_attempts + 1):
         try:
-            return mysql.connector.connect(
+            return pymysql.connect(
                 host=os.getenv("DB_HOST", "db"),
                 port=int(os.getenv("DB_PORT", "3306")),
                 database=os.getenv("DB_NAME", os.getenv("MYSQL_DATABASE", "employees")),
                 user=os.getenv("MYSQL_USER"),
                 password=os.getenv("MYSQL_PASSWORD"),
-                connection_timeout=5,
+                connect_timeout=5,
             )
-        except mysql.connector.Error as error:
+        except pymysql.MySQLError as error:
             last_error = error
             if attempt < max_attempts:
                 time.sleep(delay_seconds)
